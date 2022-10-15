@@ -1,5 +1,5 @@
 pipeline {
-    agent { build
+    agent { label 'build'
     }
     environment{
         registryUrlBase = "https://ghcr.io"
