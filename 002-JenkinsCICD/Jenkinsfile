@@ -1,5 +1,5 @@
 pipeline {
-    agent any 
+    agent build 
     environment{
         registryUrlBase = "https://ghcr.io"
         registryUrl = "ghcr.io/chance2021/devopsdaydayup"
