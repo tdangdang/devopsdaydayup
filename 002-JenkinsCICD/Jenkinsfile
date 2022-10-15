@@ -3,7 +3,7 @@ pipeline {
     environment{
         registryUrlBase = "https://ghcr.io"
         registryUrl = "ghcr.io/tdangdang/devopsdaydayup"
-        registryCredentialsId = 'github'
+        registryCredentialsId = 'github1'
         commitID = sh(script: 'git rev-parse --short HEAD', returnStdout:true).trim()
         containerName = "color-web"
     }
