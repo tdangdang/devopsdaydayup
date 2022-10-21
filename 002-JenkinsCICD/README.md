@@ -4,7 +4,7 @@
 This project will setup a Jenkins CICD pipeline, which will pull the source code from github and re-deploy the docker container in your local host.
 
 # Project Goal
-Understand how to setup/configure Jenkins as CICD pipeline. Familarize with Jenkinsfile.
+Understand how to setup/configure Jenkins as CICD pipeline. Familiarize with Jenkinsfile.
 
 # Table of Contents
 1. [Prerequisites](#prerequisites)
@@ -159,6 +159,42 @@ Run below command to grant access to `docker.sock` for the Jenkins pipeline job 
 ```
 docker exec <jenkinsContainerID> chmod 777 /var/run/docker.sock
 ```
+
+## Issue 4:  Jenkins error buildind : docker: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.32' not found (required by docker)
+When running Jenkins pipeline to build docker image, it shows below error
+```
+Jenkins error buildind : docker: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.32' not found (required by docker)
+```
+**Cause:**
+The issue will occur when you are using Ubuntu 22.02 (Ubuntu 20.02 is working fine). you’ve having shared-library issues because you’re injecting a docker binary that depends on a different version of GNU libc than exists in the image.
+
+**Solution:**
+You can build a customed image with seperated docker component/lib installed and then use this image for your Jenkins deployment.
+
+Dockerfile
+```
+FROM jenkins/jenkins:lts-jdk17
+USER root
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive \
+    apt-get install --no-install-recommends --assume-yes \
+      docker.io
+USER jenkins
+```
+
+docker-compose.yaml
+```
+version: '3.8'
+services:
+  jenkins-container:
+    build: .
+    # no image:
+    volumes:
+      - ./data:/var/jenkins_home
+      # but not /usr/bin/docker
+```
+
+> Refer to https://jtuto.com/getting-glibc_2-32-and-glibc_2-34-not-found-in-jenkins-docker-with-dind-on-ubuntu-22-04/
 
 # Reference <a name="reference"></a>
 https://www.jenkins.io/doc/book/pipeline/
