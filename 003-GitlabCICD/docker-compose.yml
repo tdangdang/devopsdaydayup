@@ -3,14 +3,14 @@ services:
   web:
     image: 'gitlab/gitlab-ce:latest'
     restart: always
-    hostname: 'gitlab.chance20221020.com'
+    hostname: 'gitlab.gold.com'
     environment:
       GITLAB_ROOT_PASSWORD: "changeme"
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'https://gitlab.chance20221020.com'
+        external_url 'https://gitlab.gold.com'
         # Add any other gitlab.rb configuration here, each on its own line
     ports:
-      - '80:80'
+      - '8088:80'
       - '443:443'
       - '8822:22'
       - '5005:5005'
@@ -22,7 +22,7 @@ services:
   hello-world:
     image: ghcr.io/chance2021/devopsdaydayup:colorweb
     ports:
-    - 8080:8080
+    - 8081:8081
   gitlab-runner:
     image: 'gitlab/gitlab-runner:latest'
     restart: always
