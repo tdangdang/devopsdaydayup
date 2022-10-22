@@ -20,7 +20,7 @@ services:
       - 'gitlab_data:/var/opt/gitlab'
     shm_size: '256m'
   hello-world:
-    image: ghcr.io/chance2021/devopsdaydayup:colorweb
+    image: ghcr.io/tdangdang/devopsdaydayup:colorweb
     ports:
     - 8081:8081
   gitlab-runner:
