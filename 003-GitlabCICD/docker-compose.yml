@@ -10,7 +10,7 @@ services:
         external_url 'https://gitlab.gold.com'
         # Add any other gitlab.rb configuration here, each on its own line
     ports:
-      - '8088:80'
+      - '80:80'
       - '443:443'
       - '8822:22'
       - '5005:5005'
