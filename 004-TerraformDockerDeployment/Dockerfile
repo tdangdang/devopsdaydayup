@@ -1,4 +1,4 @@
-# docker run -p 8080:8080 --name hello-world hello-world:develop
+# docker run -p 8081:8081 --name hello-world hello-world:develop
 FROM python:3.8-alpine
 
 RUN mkdir /app
@@ -9,7 +9,7 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-EXPOSE 8080
+EXPOSE 8081
 
 CMD ["python", "app.py"]
 
