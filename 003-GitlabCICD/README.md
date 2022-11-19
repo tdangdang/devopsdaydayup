@@ -32,6 +32,27 @@ Once it is done, open your **browser** and go to https://<your_gitlab_domain_nam
 # 192.168.2.61 gitlab.chance20221020.com registry.gitlab.chance20221020.com
 ```
 
+NOTE: if you are trying to use `localhost` as domain name, you have to use following command to get the ip mapping of the host. see detail in [post](https://stackoverflow.com/questions/24319662/from-inside-of-a-docker-container-how-do-i-connect-to-the-localhost-of-the-mach): 
+
+```
+# in the host machine
+$ sudo ip addr show docker0
+  docker0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP group default
+    link/ether 56:84:7a:fe:97:99 brd ff:ff:ff:ff:ff:ff
+    inet 172.17.42.1/16 scope global docker0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::5484:7aff:fefe:9799/64 scope link
+       valid_lft forever preferred_lft forever
+```
+
+In the example, `inet 172.17.42.1/16` will be the mapping of host machine. Then in the `/etc/hosts` you can add entry as following:
+```
+# example 
+# 172.17.42.1 gitlab.localhost  registry.gitlab.localhost
+```
+
+The main reason here is `localhost` or `127.0.0.1` will also be specified by containers network. if you update `/etc/hosts` with `127.0.0.1  localhost gitlab.localhost  registry.gitlab.localhost`, the container will try to treat itself as `localhost` in stead of host machine.
+
 ## 3. Login to your gitlab web.
 Wait for about **5 mins** for the server to fully start up. Then login to the **Gitlab website (https://<YOUR_GITLAB_SERVER_IP>)** with the username `root` and the password defined in your `docker-compose.yaml`, which should be the value for env varible `GITLAB_ROOT_PASSWORD`. <br/>
 Click **"New project"** to create your first project -> Click **"Create blank project"** -> Type your project name in **"Project Name"** -> Select **"Public"** and click **"Create project"** -> Go to the new project you just created, and go to **"Setting"** -> **"CI/CD"** -> expand **"Runners"** section. **Make a note** of **"URL** and **registration token** in **"Specific runners"** section for below runner installation used
@@ -55,7 +76,9 @@ openssl x509 -req -extfile <(printf "subjectAltName=DNS:$YOUR_GITLAB_DOMAIN,DNS:
 # Certificate for nginx (container registry)
 openssl req -newkey rsa:2048 -nodes -keyout registry.gitlab.$YOUR_GITLAB_DOMAIN.key -subj "/C=CN/ST=GD/L=SZ/O=Acme, Inc./CN=*.$YOUR_GITLAB_DOMAIN" -out registry.gitlab.$YOUR_GITLAB_DOMAIN.csr
 openssl x509 -req -extfile <(printf "subjectAltName=DNS:$YOUR_GITLAB_DOMAIN,DNS:gitlab.$YOUR_GITLAB_DOMAIN,DNS:registry.gitlab.$YOUR_GITLAB_DOMAIN") -days 365 -in registry.gitlab.$YOUR_GITLAB_DOMAIN.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out registry.gitlab.$YOUR_GITLAB_DOMAIN.crt
-
+# Note: You can reconfigure/restart the gitlab in next step as well if you want
+gitlab-ctl reconfigure
+gitlab-ctl restart
 exit
 ```
 ## 5. Enable **container register** 
@@ -118,7 +141,9 @@ Login Succeeded
 ```
 ![container-registry](images/container-registry.png)
 ## 7. Configure **gitlab-runner** 
-Login to gitlab-runner and run commands below:
+
+Login to gitlab-runner and run commands below. Please note the tag below has to match with the `tags` section in `.gitlab-ci.yml` file:
+
 ```bash
 export YOUR_GITLAB_DOMAIN=chance20221020.com
 docker exec $(docker ps -f name=web -q) cat /etc/gitlab/ssl/gitlab.$YOUR_GITLAB_DOMAIN.crt
@@ -142,6 +167,7 @@ Enter the registration token:
 Enter a description for the runner:
 [bad518d25b44]: test
 
+# HERE tag below has to match with tags in .gitlab-ci.yml
 Enter tags for the runner (comma-separated):
 test
 
@@ -167,7 +193,7 @@ Once you finish above step, you should be able to see an available running in th
 ```
 git clone <URL from your gitlab server repo>
 cd <your project name folder>
-cp /path/to/devopsdaydayup/003-GitlabCICD/{app.py,Dockerfile,requirements.txt}  <your gitlab repo>
+cp /path/to/devopsdaydayup/003-GitlabCICD/{app.py,Dockerfile,requirements.txt,.gitlab-ci.yaml,.gitlab-ci.yml}  <your gitlab repo>
 git add .
 git commit -am "First commit"
 git push
@@ -249,6 +275,20 @@ You need to enable your runner without tags. Go to your project and go to "Setti
 > Refer to: https://stackoverflow.com/questions/53370840/this-job-is-stuck-because-the-project-doesnt-have-any-runners-online-assigned
 
 
+## Issue 6: New runner. Has not connected yet.
+
+**Cause:**
+sometimes you might see the waring icon at the left side of runner. It is due to unverified runner been setup.
+
+![runner-is-not-ready-yet](images/issue6-runner-is-not-ready-yet.png)
+
+**Solution:**
+```
+docker exec -it $(docker ps -f name=gitlab-runner -q) bash
+gitlab-runner verify --delete
+```
+
+> Refer to: https://gitlab.com/gitlab-org/gitlab-runner/-/issues/3750
 
 # <a name="reference">Reference</a>
 [Install Gitlab using docker compose](https://docs.gitlab.com/ee/install/docker.html#install-gitlab-using-docker-compose) <br/>
