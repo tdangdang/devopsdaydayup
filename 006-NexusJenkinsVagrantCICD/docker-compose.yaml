@@ -1,5 +1,12 @@
-version: '2'
+version: "2"
+
 services:
+  nexus:
+    image: sonatype/nexus3
+    volumes:
+      - "nexus-data:/nexus-data"
+    ports:
+      - "8081:8081"
   jenkins:
     build:
       context: .
@@ -19,30 +26,11 @@ services:
       - 'jenkins_data:/var/jenkins_home'
       - '/usr/bin/docker:/usr/bin/docker'
       - '/var/run/docker.sock:/var/run/docker.sock'
-  vault:
-    build: 
-      context: .
-      dockerfile: vault.Dockerfile 
-    cap_add:
-      - IPC_LOCK
-    ports:
-      - '8200:8200'
-    volumes:
-      - type: volume
-        source: vault_file
-        target: /vault/file
-      - type: volume
-        source: vault_config
-        target: /vault/config
-
-
+ 
 volumes:
+  nexus-data: 
+    driver: local
   jenkins_data:
     driver: local
-  vault_file:
-    driver: local
-  vault_config:
-    driver: local
-
 
 
