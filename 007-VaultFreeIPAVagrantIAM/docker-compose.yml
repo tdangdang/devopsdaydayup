@@ -46,29 +46,11 @@ services:
       - "9443:9443"
       - "9444:9444"
       - "9445:9445"
-  vault:
-    build: 
-      context: .
-      dockerfile: vault.Dockerfile 
-    cap_add:
-      - IPC_LOCK
-    volumes:
-      - type: volume
-        source: vault_file
-        target: /vault/file
-      - type: volume
-        source: vault_config
-        target: /vault/config
-    ports:
-      - "8200:8200"
 
 volumes:
   freeipavol:
     driver: local
-  vault_file:
-    driver: local
-  vault_config:
-    driver: local
+
 
 
 
